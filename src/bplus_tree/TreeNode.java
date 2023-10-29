@@ -12,14 +12,23 @@ class TreeNode<V> extends Node {
     private int previousKey;
 
     protected void display() {
-        for (int i = 0; i < keySize; i++) {
-            System.out.print(keys[i]);
-            System.out.print(' ');
-        }
         System.out.print('(');
         System.out.print(parent == null ? "null" : parent.getMinKey());
         System.out.print(')');
+
+        for (int i = 0; i < keySize; i++) {
+            System.out.print(keys[i]);
+            if(isLeaf){
+                System.out.print('[');
+                System.out.print(((DataNode<V>) children[i]).getData());
+                System.out.print(']');
+            }
+            System.out.print(' ');
+
+        }
+
         System.out.print('|');
+
     }
 
     protected TreeNode(int n) {
@@ -100,6 +109,13 @@ class TreeNode<V> extends Node {
         return keySize + 1;
     }
 
+    public int getKeySize(){
+        return keySize;}
+
+    public int getKey(int index) {
+        return keys[index];
+    }
+
     public boolean containsKey(int key) {
         for (int i = 0; i < keys.length; i++) {
             if (key == keys[i]) {
@@ -112,30 +128,46 @@ class TreeNode<V> extends Node {
 
 
     public void insertValue(int key, V value) {
+//        System.out.println("try to insert new value in the leaf"+key);
+//        System.out.println("before insert key size is:"+keySize);
+//        for (int k : keys) {
+//            System.out.print(k + " ");
+//        }
+//        System.out.println();
 
         int insertIndex = 0;
 
         while (insertIndex < keySize && keys[insertIndex] < key) {
             insertIndex += 1;
         }
-        for (int i = insertIndex + 1; i < keySize; i++) {
+//        System.out.println(key + "should be inserted at "+insertIndex);
+        for (int i = keySize; i > insertIndex; i--) {
             keys[i] = keys[i - 1];
             children[i] = children[i - 1];
         }
         keys[insertIndex] = key;
         children[insertIndex] = new DataNode<>(value);
         keySize += 1;
+//        System.out.println("after insert:");
+//        for (int k : keys) {
+//            System.out.print(k + " ");
+//        }
+//        System.out.println();
 
     }
 
     public void insertInternalNode(TreeNode<V> node) {
-        int key = node.getMinKey();
 
+        int key = node.getPreviousKey();
+        System.out.println("try to insert internal node"+key);
+        for(int i = 0;i<keySize;i++){
+            System.out.println(keys[i]);
+        }
         int keyIndex = 0;
         while (keyIndex < keySize && keys[keyIndex] < key) {
             keyIndex += 1;
         }
-        for (int i = keyIndex + 1; i < keySize; i++) {
+        for (int i = keySize; i > keyIndex; i--) {
             keys[i] = keys[i - 1];
             children[i + 1] = children[i];
         }
@@ -143,10 +175,19 @@ class TreeNode<V> extends Node {
         keys[keyIndex] = key;
         children[keyIndex + 1] = node;
         keySize += 1;
+        System.out.println("after insertion with "+key);
+        for(int i = 0;i<keySize;i++){
+            System.out.println(keys[i]);
+        }
 
     }
 
     public TreeNode<V> splitLeafNode(int key, Node<V> node) {
+
+//        System.out.println("original keys and children");
+//        for(int i = 0;i<keys.length;i++){
+//            System.out.println(keys[i] + " " + children[i]);
+//        }
         int n = keys.length;
 
         int[] tempKeys = new int[n + 1];
@@ -164,13 +205,13 @@ class TreeNode<V> extends Node {
             tempChildren[insertIndex] = children[insertIndex];
             insertIndex += 1;
         }
-
+//        System.out.println(key + "will be inserted at " + insertIndex);
         tempKeys[insertIndex] = key;
         tempChildren[insertIndex++] = node;
 
-        while (insertIndex < keySize) {
-            tempKeys[insertIndex] = keys[insertIndex];
-            tempChildren[insertIndex] = children[insertIndex];
+        while (insertIndex <=keySize) {
+            tempKeys[insertIndex] = keys[insertIndex-1];
+            tempChildren[insertIndex] = children[insertIndex-1];
             insertIndex += 1;
         }
 
@@ -195,12 +236,17 @@ class TreeNode<V> extends Node {
 //            System.out.println(newKeys[i] + " " + newKeys[i]);
 //        }
 
-        return new TreeNode<>(rightSize, newKeys, newChildren, true);
+        TreeNode<V> newNode = new TreeNode<>(rightSize, newKeys, newChildren, true);
+        newNode.setPreviousKey(tempKeys[leftSize]);
+        return newNode;
     }
 
     public TreeNode<V> splitInternalNode(int key, TreeNode<V> node) {
         int n = keys.length;
-
+//        System.out.println("original keys and children n: "+n);
+//        for(int i = 0;i<keys.length;i++){
+//            System.out.println(keys[i] + " " + children[i]);
+//        }
         int[] tempKeys = new int[n + 1];
         Node<V>[] tempChildren = new Node[n + 2];
 
@@ -210,19 +256,21 @@ class TreeNode<V> extends Node {
             tempKeys[keyIndex] = keys[keyIndex++];
             tempChildren[childIndex] = children[childIndex++];
         }
+//        System.out.println(key + "will be inserted at " + keyIndex +"and "+childIndex);
+
         tempKeys[keyIndex++] = key;
         tempChildren[childIndex] = children[childIndex++];
         tempChildren[childIndex++] = node;
 
-        while (keyIndex < keySize) {
-            tempKeys[keyIndex] = keys[keyIndex++];
-            tempChildren[childIndex] = children[childIndex++];
+        while (keyIndex <= keySize) {
+            tempKeys[keyIndex] = keys[keyIndex++-1];
+            tempChildren[childIndex] = children[childIndex++-1];
         }
 
-        System.out.println("split internal node print tempkeys");
-        for (int i = 0; i < tempKeys.length; i++) {
-            System.out.println(tempKeys[i]);
-        }
+//        System.out.println("split internal node print tempkeys");
+//        for (int i = 0; i < tempKeys.length; i++) {
+//            System.out.println(tempKeys[i]);
+//        }
 
         int leftSize = (n + 1) / 2;
         int rightSize = n - leftSize;
@@ -244,11 +292,11 @@ class TreeNode<V> extends Node {
         }
         newChildren[rightSize] = tempChildren[n + 1];
 
-        System.out.println("split internal " + rightSize);
-        for (int i = 0; i < rightSize; i++) {
-            System.out.print(newKeys[i] + " ");
-            System.out.println(newChildren[i]);
-        }
+//        System.out.println("split internal " + rightSize);
+//        for (int i = 0; i < rightSize; i++) {
+//            System.out.print(newKeys[i] + " ");
+//            System.out.println(newChildren[i]);
+//        }
         TreeNode<V> newInternalNode =  new TreeNode<>(rightSize, newKeys, newChildren, false);
 
         newInternalNode.setPreviousKey(tempKeys[leftSize]);
