@@ -7,8 +7,8 @@ import java.util.Collections;
 
 public class Main {
     public static void main(String[] args){
-//        customTest();
-        shuffledTest();
+        customTest();
+//        shuffledTest();
     }
 
     private static void shuffledTest(){
@@ -22,19 +22,21 @@ public class Main {
 
         BplusTree<Integer> bplusTree = new BplusTree<>(2);
         for(int i = 0;i<arr.size();i++){
-            System.out.println("insert " + i);
-            bplusTree.insert(i, i);
+            System.out.println("insert " + arr.get(i));
+            bplusTree.insert(arr.get(i), arr.get(i));
+
         }
 
         bplusTree.validate();
         System.out.println("display B+ Tree");
         bplusTree.display();
+
     }
     private static void customTest(){
         System.out.println("B+-Tree test");
         BplusTree<Integer> bplusTree = new BplusTree<>(3);
 
-        for(int i = 0;i<30;i+=1){
+        for(int i = 0;i<30;i+=2){
             System.out.println("insert " + i);
             bplusTree.insert(i, i);
         }

@@ -16,17 +16,14 @@ public class BplusTree<V> {
     }
 
     private boolean validateDFS(TreeNode<V> node, int min, int max){
-//        System.out.println("keysize: "+node.getKeySize()+" is Leaf:"+node.isLeaf()+" min: " + min + " max: " + max);
         for (int i = 0; i < node.getKeySize(); i++) {
             int key = node.getKey(i);
-//            System.out.println("key: "+key);
             if(key>=min&&key<max){
                 if(!node.isLeaf())
                     if(!validateDFS((TreeNode<V>) node.getChild(i), min, key)){
                         return false;
                     }
             } else {
-//                System.err.println("Not valid here: min: "+min+" key: "+key+" max: "+max);
                 return false;
             }
             min = key;
@@ -66,9 +63,14 @@ public class BplusTree<V> {
 
     public TreeNode<V> search(int key) {
         if (root == null) return null;
+        root.lockNode();
         TreeNode<V> node = root;
         while (!node.isLeaf()) {
             node = (TreeNode<V>) node.getChildNode(key);
+            node.lockNode();
+            if(!node.isFull()){
+                node.unlockParentNode();
+            }
         }
 
         return node;
@@ -77,8 +79,10 @@ public class BplusTree<V> {
     public void insert(int key, V value) {
         if (root == null) {
             root = new TreeNode<>(n);
+            root.lockNode();
             root.setLeaf(true);
             root.insertValue(key, value);
+            root.unlockNode();
             return;
         }
 
@@ -87,13 +91,9 @@ public class BplusTree<V> {
         if (!leafNode.isFull()) {
             leafNode.insertValue(key, value);
         } else {
-//            System.out.println("need t osplit leaf node");
             DataNode<V> newNode = new DataNode<>(value);
 
             TreeNode<V> newLeaf = leafNode.splitLeafNode(key, newNode);
-//            System.out.println("need to split leaf node");
-//            leafNode.display();
-//            newLeaf.display();
 
             if (leafNode == root) {
                 int[] tempKeys = new int[n];
@@ -106,29 +106,25 @@ public class BplusTree<V> {
                 root = newRoot;
                 leafNode.setParent(root);
                 newLeaf.setParent(root);
+
             } else {
-//                System.out.println("need to try splitting parent node for key "+key);
                 splitParentNode(leafNode.getParent(), newLeaf, newLeaf.getMinKey());
             }
 
         }
+        leafNode.unlockNode();
+        leafNode.unlockParentNode();
     }
 
     private void splitParentNode(TreeNode<V> parent, TreeNode<V> child, int key) {
         if (parent != null && !parent.isFull()) {
-//            System.out.println("no need to split parent node for key "+key);
-
             parent.insertInternalNode(child);
             child.setParent(parent);
             return;
         }
-//        System.out.println("need to split parent node for key "+key);
-
         TreeNode<V> newInternalNode = parent.splitInternalNode(key, child);
-//        child.setParent(newInternalNode);
 
         if (parent == root) {
-//            System.out.println("split root and create new root");
             int[] tempKeys = new int[n];
             Node<V>[] tempChildren = new Node[n + 1];
 
@@ -142,6 +138,8 @@ public class BplusTree<V> {
         } else {
             splitParentNode(parent.getParent(), newInternalNode, newInternalNode.getPreviousKey());
         }
+        parent.unlockNode();
+        parent.unlockParentNode();
 
     }
 }
