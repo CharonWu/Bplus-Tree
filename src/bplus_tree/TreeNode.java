@@ -15,9 +15,9 @@ class TreeNode<V> extends Node {
         System.out.print('(');
         System.out.print(parent == null ? "null" : parent.getMinKey());
         System.out.print(')');
-        System.out.print('(');
-        System.out.print(semaphore.availablePermits());
-        System.out.print(')');
+//        System.out.print('(');
+//        System.out.print(semaphore.availablePermits());
+//        System.out.print(')');
 
         for (int i = 0; i < keySize; i++) {
             System.out.print(keys[i]);

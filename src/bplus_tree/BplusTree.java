@@ -2,10 +2,13 @@ package src.bplus_tree;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.Semaphore;
 
 public class BplusTree<V> {
     private TreeNode<V> root = null;
     private int n;
+
+    private Semaphore semaphore;
 
     public void validate(){
         if (validateDFS(root, Integer.MIN_VALUE, Integer.MAX_VALUE)) {
@@ -58,6 +61,7 @@ public class BplusTree<V> {
     }
 
     public BplusTree(int n) {
+        this.semaphore = new Semaphore(1);
         this.n = n;
     }
 
@@ -78,12 +82,19 @@ public class BplusTree<V> {
 
     public void insert(int key, V value) {
         if (root == null) {
-            root = new TreeNode<>(n);
-            root.lockNode();
-            root.setLeaf(true);
-            root.insertValue(key, value);
-            root.unlockNode();
-            return;
+            try {
+                semaphore.acquire();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            if (root == null) {
+                root = new TreeNode<>(n);
+                root.setLeaf(true);
+                root.insertValue(key, value);
+                semaphore.release();
+                return;
+            }
+            semaphore.release();
         }
 
         TreeNode<V> leafNode = search(key);
@@ -103,10 +114,11 @@ public class BplusTree<V> {
                 tempChildren[0] = leafNode;
                 tempChildren[1] = newLeaf;
                 TreeNode<V> newRoot = new TreeNode<>(1, tempKeys, tempChildren, false);
+                newRoot.lockNode();
                 root = newRoot;
                 leafNode.setParent(root);
                 newLeaf.setParent(root);
-
+                newRoot.unlockNode();
             } else {
                 splitParentNode(leafNode.getParent(), newLeaf, newLeaf.getMinKey());
             }
@@ -132,9 +144,11 @@ public class BplusTree<V> {
             tempChildren[0] = parent;
             tempChildren[1] = newInternalNode;
             TreeNode<V> newRoot = new TreeNode<>(1, tempKeys, tempChildren, false);
+            newRoot.lockNode();
             root = newRoot;
             parent.setParent(root);
             newInternalNode.setParent(root);
+            newRoot.unlockParentNode();
         } else {
             splitParentNode(parent.getParent(), newInternalNode, newInternalNode.getPreviousKey());
         }
