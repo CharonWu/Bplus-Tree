@@ -1,27 +1,24 @@
 package src.bplus_tree;
 
-class TreeNode<V> extends Node {
-    private volatile int[] keys;
-    private volatile TreeNode<V> parent;
+class TreeNode<V> extends Node<V> {
+    private final int[] keys;
+    private TreeNode<V> parent;
 
-    private volatile Node<V>[] children;
-    private volatile int keySize;
+    private final Node<V>[] children;
+    private int keySize;
 
-    private volatile boolean isLeaf = false;
+    private boolean isLeaf = false;
 
-    private volatile int previousKey;
+    private int previousKey;
 
     protected void display() {
         System.out.print('(');
         System.out.print(parent == null ? "null" : parent.getMinKey());
         System.out.print(')');
-//        System.out.print('(');
-//        System.out.print(semaphore.availablePermits());
-//        System.out.print(')');
 
         for (int i = 0; i < keySize; i++) {
             System.out.print(keys[i]);
-            if(isLeaf){
+            if (isLeaf) {
                 System.out.print('[');
                 System.out.print(((DataNode<V>) children[i]).getData());
                 System.out.print(']');
@@ -76,12 +73,12 @@ class TreeNode<V> extends Node {
     }
 
     public void setParent(TreeNode<V> parent) {
-       this.parent=parent;
+        this.parent = parent;
     }
 
-    public void setParentForChildren(){
-        for(int i = 0;i<keySize+1;i++){
-            ((TreeNode<V>)children[i]).setParent(this);
+    public void setParentForChildren() {
+        for (int i = 0; i < keySize + 1; i++) {
+            ((TreeNode<V>) children[i]).setParent(this);
         }
     }
 
@@ -114,16 +111,17 @@ class TreeNode<V> extends Node {
         return keySize + 1;
     }
 
-    public int getKeySize(){
-        return keySize;}
+    public int getKeySize() {
+        return keySize;
+    }
 
     public int getKey(int index) {
         return keys[index];
     }
 
     public boolean containsKey(int key) {
-        for (int i = 0; i < keys.length; i++) {
-            if (key == keys[i]) {
+        for (int j : keys) {
+            if (key == j) {
                 return true;
             }
         }
@@ -131,9 +129,9 @@ class TreeNode<V> extends Node {
         return false;
     }
 
-    public boolean containsChild(Node<V> child){
-        for(Node<V> c: children){
-            if(c==child)return true;
+    public boolean containsChild(Node<V> child) {
+        for (Node<V> c : children) {
+            if (c == child) return true;
         }
         return false;
     }
@@ -193,9 +191,9 @@ class TreeNode<V> extends Node {
         tempKeys[insertIndex] = key;
         tempChildren[insertIndex++] = node;
 
-        while (insertIndex <=keySize) {
-            tempKeys[insertIndex] = keys[insertIndex-1];
-            tempChildren[insertIndex] = children[insertIndex-1];
+        while (insertIndex <= keySize) {
+            tempKeys[insertIndex] = keys[insertIndex - 1];
+            tempChildren[insertIndex] = children[insertIndex - 1];
             insertIndex += 1;
         }
 
@@ -233,8 +231,8 @@ class TreeNode<V> extends Node {
         tempChildren[childIndex++] = node;
 
         while (keyIndex <= keySize) {
-            tempKeys[keyIndex] = keys[keyIndex++-1];
-            tempChildren[childIndex] = children[childIndex++-1];
+            tempKeys[keyIndex] = keys[keyIndex++ - 1];
+            tempChildren[childIndex] = children[childIndex++ - 1];
         }
 
         int leftSize = (n + 1) / 2;
@@ -257,7 +255,7 @@ class TreeNode<V> extends Node {
         }
         newChildren[rightSize] = tempChildren[n + 1];
 
-        TreeNode<V> newInternalNode =  new TreeNode<>(rightSize, newKeys, newChildren, false);
+        TreeNode<V> newInternalNode = new TreeNode<>(rightSize, newKeys, newChildren, false);
 
         newInternalNode.setPreviousKey(tempKeys[leftSize]);
         newInternalNode.setParentForChildren();
@@ -265,10 +263,10 @@ class TreeNode<V> extends Node {
         return newInternalNode;
     }
 
-    public TreeNode unlockParentNode(){
+    public TreeNode<V> unlockParentNode() {
         TreeNode<V> pNode = parent;
 
-        while (pNode!=null && pNode.unlockNode()){
+        while (pNode != null && pNode.unlockNode()) {
             pNode = pNode.parent;
         }
 

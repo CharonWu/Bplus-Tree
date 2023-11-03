@@ -1,6 +1,6 @@
 package src.bplus_tree;
 
-class DataNode<V> extends Node {
+class DataNode<V> extends Node<V> {
     private V data;
 
     public DataNode(V data){
