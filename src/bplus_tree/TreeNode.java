@@ -1,15 +1,15 @@
 package src.bplus_tree;
 
 class TreeNode<V> extends Node {
-    private int[] keys;
-    private TreeNode<V> parent;
+    private volatile int[] keys;
+    private volatile TreeNode<V> parent;
 
-    private Node<V>[] children;
-    private int keySize;
+    private volatile Node<V>[] children;
+    private volatile int keySize;
 
-    private boolean isLeaf = false;
+    private volatile boolean isLeaf = false;
 
-    private int previousKey;
+    private volatile int previousKey;
 
     protected void display() {
         System.out.print('(');
@@ -39,6 +39,7 @@ class TreeNode<V> extends Node {
     }
 
     protected TreeNode(int n, TreeNode<V> parent) {
+        super();
         this.keys = new int[n];
         this.children = new Node[n + 1];
         this.parent = parent;
@@ -46,6 +47,7 @@ class TreeNode<V> extends Node {
     }
 
     protected TreeNode(int keySize, int[] keys, Node<V>[] children, boolean isLeaf) {
+        super();
         this.keys = keys;
         this.children = children;
         this.parent = null;
@@ -126,6 +128,13 @@ class TreeNode<V> extends Node {
             }
         }
 
+        return false;
+    }
+
+    public boolean containsChild(Node<V> child){
+        for(Node<V> c: children){
+            if(c==child)return true;
+        }
         return false;
     }
 
@@ -256,12 +265,14 @@ class TreeNode<V> extends Node {
         return newInternalNode;
     }
 
-    public void unlockParentNode(){
+    public TreeNode unlockParentNode(){
         TreeNode<V> pNode = parent;
 
         while (pNode!=null && pNode.unlockNode()){
             pNode = pNode.parent;
         }
+
+        return pNode;
     }
 
 }
