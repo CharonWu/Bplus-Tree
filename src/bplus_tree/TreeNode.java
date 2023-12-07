@@ -11,6 +11,9 @@ class TreeNode<V> extends Node<V> {
 
     private int previousKey;
 
+    /**
+     * This method is used to show the structure of the TreeNode.
+     */
     protected void display() {
         System.out.print('(');
         System.out.print(parent == null ? "null" : parent.getMinKey());
@@ -31,10 +34,19 @@ class TreeNode<V> extends Node<V> {
 
     }
 
+    /**
+     * This method init the TreeNode
+     * @param n The maximum number of keys.
+     */
     protected TreeNode(int n) {
         this(n, null);
     }
 
+    /**
+     * The constructor of the TreeNode.
+     * @param n The maximum number of keys.
+     * @param parent The parent TreeNode of this node.
+     */
     protected TreeNode(int n, TreeNode<V> parent) {
         super();
         this.keys = new int[n];
@@ -43,6 +55,13 @@ class TreeNode<V> extends Node<V> {
         this.keySize = 0;
     }
 
+    /**
+     * The constructor of the TreeNode.
+     * @param keySize The number of keys current TreeNode will hold.
+     * @param keys An array of keys.
+     * @param children An array of children nodes, will be either a TreeNode or a DataNode.
+     * @param isLeaf If this Node is a leaf node.g
+     */
     protected TreeNode(int keySize, int[] keys, Node<V>[] children, boolean isLeaf) {
         super();
         this.keys = keys;
@@ -64,10 +83,18 @@ class TreeNode<V> extends Node<V> {
         return previousKey;
     }
 
+    /**
+     * This method store the correspond key in the parent node to locate the current node.
+     * @param key The key is smaller than or equal to the first key in the current node.
+     */
     public void setPreviousKey(int key) {
         previousKey = key;
     }
 
+    /**
+     * This method returns the direct parent of current node.
+     * @return TreeNode or null if parent doesn't exist.
+     */
     public TreeNode<V> getParent() {
         return this.parent;
     }
@@ -94,10 +121,20 @@ class TreeNode<V> extends Node<V> {
         return keys[keySize - 1];
     }
 
+    /**
+     * This method returns child node according to the index in the keys.
+     * @param index The index for the key.
+     * @return TreeNode or DataNode.
+     */
     public Node<V> getChild(int index) {
         return children[index];
     }
 
+    /**
+     * This method returns the child node within the range[ key_i, key_(i+1) ).
+     * @param key The key of the data.
+     * @return TreeNode or DataNode.
+     */
     public Node<V> getChildNode(int key) {
         for (int i = 0; i < keySize; i++) {
             if (keys[i] >= key) {
@@ -263,6 +300,11 @@ class TreeNode<V> extends Node<V> {
         return newInternalNode;
     }
 
+    /**
+     * This method recursively unlock all the TreeNode locked by the current thread until there is no node or
+     * unlockNode is failed.
+     * @return Null or first TreeNode failed at unlock.
+     */
     public TreeNode<V> unlockParentNode() {
         TreeNode<V> pNode = parent;
 

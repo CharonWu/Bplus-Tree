@@ -9,14 +9,16 @@ import java.util.Collections;
 
 public class Main {
     public static void main(String[] args) {
+        System.out.println(Runtime.getRuntime().availableProcessors());
 //        customTest();
-//        shuffledTest();
-        concurrentTest();
+        shuffledTest();
+        ownershipLockTest();
+        synchronizedTest();
     }
 
 
-    private static void concurrentTest() {
-        System.out.println("B+-Tree concurrent test");
+    private static void ownershipLockTest() {
+        System.out.println("B+-Tree ownership lock test");
 
         ArrayList<Integer> arr = getTestArray(1000000, true);
 
@@ -30,6 +32,45 @@ public class Main {
                 int end = index * 100000 + 100000;
                 for (int j = index * 100000; j < end; j++) {
                     bplusTree.insert(arr.get(j), arr.get(j));
+                }
+            });
+            ts[i] = t;
+            t.start();
+        }
+
+        try {
+            for (Thread t : ts) {
+                t.join();
+            }
+        } catch (Exception E) {
+            E.printStackTrace();
+        }
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        System.out.println("Time taken: " + timeElapsed.toMillis() + " milliseconds");
+
+        bplusTree.validate();
+//        System.out.println("display B+ Tree");
+//        bplusTree.display();
+    }
+
+    private static void synchronizedTest() {
+        System.out.println("B+-Tree synchronized test");
+
+        ArrayList<Integer> arr = getTestArray(1000000, true);
+
+        BplusTree<Integer> bplusTree = new BplusTree<>(3);
+
+        Thread[] ts = new Thread[10];
+        Instant start = Instant.now();
+        for (int i = 0; i < 10; i++) {
+            int index = i;
+            Thread t = new Thread(() -> {
+                int end = index * 100000 + 100000;
+                for (int j = index * 100000; j < end; j++) {
+                    synchronized (bplusTree){
+                        bplusTree.insert(arr.get(j), arr.get(j));
+                    }
                 }
             });
             ts[i] = t;
